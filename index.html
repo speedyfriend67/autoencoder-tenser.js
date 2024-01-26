@@ -4,76 +4,73 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Autoencoder Visualizer</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0"></script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
   <h1>Autoencoder Visualizer</h1>
-  <div class="input-section">
-    <input type="text" id="inputData" placeholder="Enter 5 numbers (comma-separated)">
-    <button id="visualizeButton">Visualize</button>
-    <button id="resetButton">Reset Input</button>
-    <button id="clearButton">Clear Input</button>
-  </div>
-  <div class="options-section">
-    <label for="encodingUnits">Encoding Units:</label>
-    <input type="number" id="encodingUnits" min="1" value="2">
-    <br>
-    <label for="epochs">Epochs:</label>
-    <input type="range" id="epochs" min="1" max="200" value="100">
-    <span id="epochsValue">100</span>
-    <br>
-    <label for="learningRate">Learning Rate:</label>
-    <input type="number" id="learningRate" min="0.0001" step="0.0001" value="0.001">
-    <br>
-    <label for="optimizer">Optimizer:</label>
-    <select id="optimizer">
-      <option value="adam">Adam</option>
-      <option value="sgd">SGD</option>
-    </select>
-    <br>
-    <label for="lossMetric">Loss Metric:</label>
-    <select id="lossMetric">
-      <option value="meanSquaredError">Mean Squared Error</option>
-      <option value="binaryCrossentropy">Binary Crossentropy</option>
-      <option value="custom">Custom</option>
-    </select>
-    <input type="text" id="customLoss" placeholder="Custom Loss Function (if selected)">
-    <br>
-    <input type="checkbox" id="l1Regularization">
-    <label for="l1Regularization">L1 Regularization</label>
-    <br>
-    <input type="checkbox" id="l2Regularization">
-    <label for="l2Regularization">L2 Regularization</label>
-    <br>
-    <label for="dropoutRate">Dropout Rate:</label>
-    <input type="number" id="dropoutRate" min="0" max="1" step="0.01" value="0">
-    <br>
-    <input type="checkbox" id="earlyStopping">
-    <label for="earlyStopping">Early Stopping</label>
-    <br>
-    <label for="learningRateScheduler">Learning Rate Scheduler:</label>
-    <select id="learningRateScheduler">
-      <option value="none">None</option>
-      <option value="exponentialDecay">Exponential Decay</option>
-      <option value="stepDecay">Step Decay</option>
-    </select>
-    <br>
-    <input type="checkbox" id="batchNormalization">
-    <label for="batchNormalization">Batch Normalization</label>
-  </div>
-  <div class="chart-section">
-    <canvas id="lineChart"></canvas>
-    <div id="encodedContainer"></div>
-    <div id="decodedContainer"></div>
-    <div id="trainingMetrics"></div>
-    <p id="error" style="display: none;"></p>
-    <canvas id="lossChart"></canvas>
-  </div>
-  <div class="model-summary-section">
-    <h2>Model Summary</h2>
-    <div id="modelSummary"></div>
-  </div>
+  <input type="text" id="inputData" placeholder="Enter 5 numbers (comma-separated)">
+  <br>
+  <button id="visualizeButton">Visualize</button>
+  <button id="resetButton">Reset Input</button>
+  <button id="clearButton">Clear Input</button>
+  <br>
+  <label for="encodingUnits">Encoding Units:</label>
+  <input type="number" id="encodingUnits" min="1" value="2">
+  <br>
+  <label for="epochs">Epochs:</label>
+  <input type="range" id="epochs" min="1" max="200" value="100">
+  <span id="epochsValue">100</span>
+  <br>
+  <label for="learningRate">Learning Rate:</label>
+  <input type="number" id="learningRate" min="0.0001" step="0.0001" value="0.001">
+  <br>
+  <label for="optimizer">Optimizer:</label>
+  <select id="optimizer">
+    <option value="adam">Adam</option>
+    <option value="sgd">SGD</option>
+  </select>
+  <br>
+  <label for="lossMetric">Loss Metric:</label>
+  <select id="lossMetric">
+    <option value="meanSquaredError">Mean Squared Error</option>
+    <option value="binaryCrossentropy">Binary Crossentropy</option>
+    <option value="custom">Custom</option>
+  </select>
+  <input type="text" id="customLoss" placeholder="Custom Loss Function (if selected)">
+  <br>
+  <label for="l1Regularization">L1 Regularization:</label>
+  <input type="checkbox" id="l1Regularization">
+  <br>
+  <label for="l2Regularization">L2 Regularization:</label>
+  <input type="checkbox" id="l2Regularization">
+  <br>
+  <label for="dropoutRate">Dropout Rate:</label>
+  <input type="number" id="dropoutRate" min="0" max="1" step="0.01" value="0">
+  <br>
+  <label for="earlyStopping">Early Stopping:</label>
+  <input type="checkbox" id="earlyStopping">
+  <br>
+  <label for="learningRateScheduler">Learning Rate Scheduler:</label>
+  <select id="learningRateScheduler">
+    <option value="none">None</option>
+    <option value="exponentialDecay">Exponential Decay</option>
+    <option value="stepDecay">Step Decay</option>
+  </select>
+  <br>
+  <label for="batchNormalization">Batch Normalization:</label>
+  <input type="checkbox" id="batchNormalization">
+  <br>
+  <canvas id="lineChart"></canvas>
+  <br>
+  <div id="encodedContainer"></div>
+  <div id="decodedContainer"></div>
+  <div id="trainingMetrics"></div>
+  <p id="error" style="display: none;"></p>
+  <canvas id="lossChart"></canvas>
+  <div id="modelSummary"></div>
 </div>
 <script src="autoencoder.js"></script>
 </body>
