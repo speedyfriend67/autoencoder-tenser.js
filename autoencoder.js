@@ -59,11 +59,9 @@ async function visualize() {
 
   // Display model summary
   document.getElementById('modelSummary').innerText = '';
-  const summary = model.summary();
-  document.getElementById('modelSummary').appendChild(document.createTextNode(summary));
-
-  // Train the model...
+  model.summary().print();
 }
+
 
 
   // Train the model with random data (no real training data provided)
