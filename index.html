@@ -25,10 +25,17 @@
   canvas {
     border: 1px solid #ccc;
     background-color: #fff;
-    margin-top: 10px;
   }
-  .progress {
-    margin-top: 10px;
+  .toggle-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .toggle-button:hover {
+    background-color: #0056b3;
   }
 </style>
 </head>
@@ -37,36 +44,33 @@
   <h1>Autoencoder Visualizer</h1>
   <input type="text" id="inputData" placeholder="Enter input data (comma-separated)">
   <br>
-  <label for="encodingUnits">Encoding Units:</label>
-  <input type="number" id="encodingUnits" min="1" value="2">
-  <br>
-  <label for="learningRate">Learning Rate:</label>
-  <input type="range" id="learningRate" min="0.001" max="0.1" step="0.001" value="0.01">
-  <br>
-  <label for="epochs">Epochs:</label>
-  <input type="range" id="epochs" min="10" max="200" step="10" value="100">
-  <br>
   <button onclick="visualize()">Visualize</button>
   <button onclick="resetCanvas()">Reset Canvas</button>
   <button onclick="clearInput()">Clear Input</button>
-  <button onclick="toggleColor()">Toggle Color</button>
+  <br>
+  <label for="encodingUnits">Encoding Units:</label>
+  <input type="number" id="encodingUnits" min="1" value="2">
+  <br>
+  <label for="epochs">Epochs:</label>
+  <input type="range" id="epochs" min="1" max="200" value="100">
+  <span id="epochsValue">100</span>
+  <br>
+  <button class="toggle-button" onclick="toggleEncoded()">Toggle Encoded Data</button>
+  <button class="toggle-button" onclick="toggleDecoded()">Toggle Decoded Data</button>
+  <button class="toggle-button" onclick="toggleError()">Toggle Reconstruction Error</button>
   <br>
   <canvas id="canvas" width="200" height="200"></canvas>
   <br>
   <canvas id="decodedCanvas" width="200" height="200"></canvas>
-  <p id="error"></p>
-  <div class="progress" id="progress"></div>
+  <p id="error" style="display: none;"></p>
 </div>
 
 <!-- Load TensorFlow.js library -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
 <script>
-let colorToggle = false;
-
 async function visualize() {
   const inputData = document.getElementById('inputData').value.split(',').map(Number);
   const encodingUnits = parseInt(document.getElementById('encodingUnits').value, 10);
-  const learningRate = parseFloat(document.getElementById('learningRate').value);
   const epochs = parseInt(document.getElementById('epochs').value, 10);
 
   // Define the model architecture
@@ -75,26 +79,11 @@ async function visualize() {
   model.add(tf.layers.dense({ units: inputData.length, activation: 'sigmoid' }));
 
   // Compile the model
-  model.compile({ optimizer: tf.train.adam(learningRate), loss: 'meanSquaredError' });
+  model.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
 
   // Train the model with random data (no real training data provided)
   const trainingData = tf.randomNormal([10, inputData.length]);
-
-  // Display training progress
-  const progressBar = document.getElementById('progress');
-  progressBar.innerHTML = 'Training in progress...';
-
-  await model.fit(trainingData, trainingData, {
-    epochs,
-    verbose: 0,
-    callbacks: {
-      onEpochEnd: (epoch, logs) => {
-        progressBar.innerHTML = `Epoch ${epoch + 1}/${epochs} - Loss: ${logs.loss.toFixed(4)}`;
-      },
-    },
-  });
-
-  progressBar.innerHTML = '';
+  await model.fit(trainingData, trainingData, { epochs, verbose: 0 });
 
   // Encode and decode input data
   const encodedData = model.predict(tf.tensor2d([inputData]));
@@ -107,40 +96,29 @@ async function visualize() {
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const encodedValues = encodedData.dataSync();
   ctx.fillStyle = 'blue';
-  ctx.fillRect(10, 10, encodedData.dataSync()[0] * 100, encodedData.dataSync()[1] * 100);
-  
+  ctx.fillRect(0, 0, encodedValues[0] * 100, encodedValues[1] * 100);
+
   // Visualize decoded data
   const decodedCanvas = document.getElementById('decodedCanvas');
   const decodedCtx = decodedCanvas.getContext('2d');
   decodedCtx.clearRect(0, 0, decodedCanvas.width, decodedCanvas.height);
-
-  const decodedPixels = decodedData.dataSync();
+  const decodedValues = decodedData.dataSync();
   const imageData = decodedCtx.createImageData(decodedCanvas.width, decodedCanvas.height);
-
-  // Toggle between grayscale and color
-  if (colorToggle) {
-    for (let i = 0; i < decodedPixels.length; i++) {
-      const value = Math.round(decodedPixels[i] * 255);
-      imageData.data[i * 4] = value; // Red
-      imageData.data[i * 4 + 1] = value; // Green
-      imageData.data[i * 4 + 2] = value; // Blue
-      imageData.data[i * 4 + 3] = 255; // Alpha
-    }
-  } else {
-    for (let i = 0; i < decodedPixels.length; i++) {
-      const value = Math.round(decodedPixels[i] * 255);
-      imageData.data[i * 4] = value; // Red
-      imageData.data[i * 4 + 1] = value; // Green
-      imageData.data[i * 4 + 2] = value; // Blue
-      imageData.data[i * 4 + 3] = 255; // Alpha
-    }
+  for (let i = 0; i < decodedValues.length; i++) {
+    const value = Math.round(decodedValues[i] * 255);
+    imageData.data[i * 4] = value;
+    imageData.data[i * 4 + 1] = value;
+    imageData.data[i * 4 + 2] = value;
+    imageData.data[i * 4 + 3] = 255;
   }
-
   decodedCtx.putImageData(imageData, 0, 0);
 
   // Display reconstruction error
-  document.getElementById('error').innerText = `Reconstruction Error: ${error.toFixed(4)}`;
+  const errorElement = document.getElementById('error');
+  errorElement.innerText = `Reconstruction Error: ${error.toFixed(4)}`;
+  errorElement.style.display = 'none';
 }
 
 function resetCanvas() {
@@ -152,17 +130,31 @@ function resetCanvas() {
   const decodedCtx = decodedCanvas.getContext('2d');
   decodedCtx.clearRect(0, 0, decodedCanvas.width, decodedCanvas.height);
 
-  document.getElementById('error').innerText = '';
+  document.getElementById('error').style.display = 'none';
 }
 
 function clearInput() {
   document.getElementById('inputData').value = '';
 }
 
-function toggleColor() {
-  colorToggle = !colorToggle;
-  visualize();
+function toggleEncoded() {
+  const canvas = document.getElementById('canvas');
+  canvas.style.display = canvas.style.display === 'none' ? 'block' : 'none';
 }
+
+function toggleDecoded() {
+  const decodedCanvas = document.getElementById('decodedCanvas');
+  decodedCanvas.style.display = decodedCanvas.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleError() {
+  const errorElement = document.getElementById('error');
+  errorElement.style.display = errorElement.style.display === 'none' ? 'block' : 'none';
+}
+
+document.getElementById('epochs').addEventListener('input', function() {
+  document.getElementById('epochsValue').innerText = this.value;
+});
 </script>
 </body>
 </html>
