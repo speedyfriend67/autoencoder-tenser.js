@@ -1,25 +1,23 @@
 document.getElementById('visualizeButton').addEventListener('click', visualize);
 
 async function visualize() {
+  // Retrieve input data and parameters
   const inputDataRaw = document.getElementById('inputData').value.trim();
   if (!inputDataRaw) {
     alert('Please enter 5 numbers separated by commas.');
     return;
   }
-
   const inputData = inputDataRaw.split(',').map(Number);
   if (inputData.length !== 5 || inputData.some(isNaN)) {
     alert('Please enter 5 valid numbers separated by commas.');
     return;
   }
-
   const encodingUnits = parseInt(document.getElementById('encodingUnits').value, 10);
   const epochs = parseInt(document.getElementById('epochs').value, 10);
   const learningRate = parseFloat(document.getElementById('learningRate').value);
   const optimizerName = document.getElementById('optimizer').value;
   const lossMetric = document.getElementById('lossMetric').value;
   let lossFunction;
-
   if (lossMetric === 'custom') {
     const customLoss = document.getElementById('customLoss').value.trim();
     if (!customLoss) {
@@ -33,26 +31,36 @@ async function visualize() {
       return;
     }
   }
-
   const l1Regularization = document.getElementById('l1Regularization').checked;
   const l2Regularization = document.getElementById('l2Regularization').checked;
   const dropoutRate = parseFloat(document.getElementById('dropoutRate').value);
+  const earlyStopping = document.getElementById('earlyStopping').checked;
+  const learningRateScheduler = document.getElementById('learningRateScheduler').value;
+  const batchNormalization = document.getElementById('batchNormalization').checked;
 
+  // Construct the model architecture
   const model = tf.sequential();
   model.add(tf.layers.dense({ inputShape: [inputData.length], units: encodingUnits, activation: 'relu' }));
-
+  if (batchNormalization) {
+    model.add(tf.layers.batchNormalization());
+  }
   if (l1Regularization) {
     model.add(tf.layers.dropout({ rate: dropoutRate }));
   }
   if (l2Regularization) {
     model.add(tf.layers.dropout({ rate: dropoutRate }));
   }
-
   model.add(tf.layers.dense({ units: inputData.length, activation: 'sigmoid' }));
 
+  // Compile the model
   const optimizer = optimizerName === 'adam' ? tf.train.adam(learningRate) : tf.train.sgd(learningRate);
   const loss = lossMetric === 'custom' ? lossFunction : lossMetric;
   model.compile({ optimizer, loss });
+
+  // Display model summary
+  document.getElementById('modelSummary').innerText = '';
+  const summary = model.summary();
+  document.getElementById('modelSummary').appendChild(document.createTextNode(summary));
 
   // Train the model...
 }
