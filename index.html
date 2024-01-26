@@ -44,9 +44,9 @@
   <h1>Autoencoder Visualizer</h1>
   <input type="text" id="inputData" placeholder="Enter input data (comma-separated)">
   <br>
-  <button onclick="visualize()">Visualize</button>
-  <button onclick="resetCanvas()">Reset Canvas</button>
-  <button onclick="clearInput()">Clear Input</button>
+  <button id="visualizeButton">Visualize</button>
+  <button id="resetButton">Reset Canvas</button>
+  <button id="clearButton">Clear Input</button>
   <br>
   <label for="encodingUnits">Encoding Units:</label>
   <input type="number" id="encodingUnits" min="1" value="2">
@@ -55,107 +55,25 @@
   <input type="range" id="epochs" min="1" max="200" value="100">
   <span id="epochsValue">100</span>
   <br>
-  <button class="toggle-button" onclick="toggleEncoded()">Toggle Encoded Data</button>
-  <button class="toggle-button" onclick="toggleDecoded()">Toggle Decoded Data</button>
-  <button class="toggle-button" onclick="toggleError()">Toggle Reconstruction Error</button>
+  <label for="learningRate">Learning Rate:</label>
+  <input type="number" id="learningRate" min="0.0001" step="0.0001" value="0.001">
+  <br>
+  <button class="toggle-button" id="toggleEncodedButton">Toggle Encoded Data</button>
+  <button class="toggle-button" id="toggleDecodedButton">Toggle Decoded Data</button>
+  <button class="toggle-button" id="toggleErrorButton">Toggle Reconstruction Error</button>
+  <button class="toggle-button" id="trainPauseResumeButton">Pause Training</button>
   <br>
   <canvas id="canvas" width="200" height="200"></canvas>
   <br>
   <canvas id="decodedCanvas" width="200" height="200"></canvas>
   <p id="error" style="display: none;"></p>
+  <canvas id="lossChart" width="400" height="200"></canvas>
 </div>
 
 <!-- Load TensorFlow.js library -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
-<script>
-async function visualize() {
-  const inputData = document.getElementById('inputData').value.split(',').map(Number);
-  const encodingUnits = parseInt(document.getElementById('encodingUnits').value, 10);
-  const epochs = parseInt(document.getElementById('epochs').value, 10);
-
-  // Define the model architecture
-  const model = tf.sequential();
-  model.add(tf.layers.dense({ inputShape: [inputData.length], units: encodingUnits, activation: 'relu' }));
-  model.add(tf.layers.dense({ units: inputData.length, activation: 'sigmoid' }));
-
-  // Compile the model
-  model.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
-
-  // Train the model with random data (no real training data provided)
-  const trainingData = tf.randomNormal([10, inputData.length]);
-  await model.fit(trainingData, trainingData, { epochs, verbose: 0 });
-
-  // Encode and decode input data
-  const encodedData = model.predict(tf.tensor2d([inputData]));
-  const decodedData = model.predict(encodedData);
-
-  // Calculate reconstruction error
-  const error = tf.metrics.meanSquaredError(tf.tensor2d([inputData]), decodedData).dataSync()[0];
-
-  // Visualize encoded data
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const encodedValues = encodedData.dataSync();
-  ctx.fillStyle = 'blue';
-  ctx.fillRect(0, 0, encodedValues[0] * 100, encodedValues[1] * 100);
-
-  // Visualize decoded data
-  const decodedCanvas = document.getElementById('decodedCanvas');
-  const decodedCtx = decodedCanvas.getContext('2d');
-  decodedCtx.clearRect(0, 0, decodedCanvas.width, decodedCanvas.height);
-  const decodedValues = decodedData.dataSync();
-  const imageData = decodedCtx.createImageData(decodedCanvas.width, decodedCanvas.height);
-  for (let i = 0; i < decodedValues.length; i++) {
-    const value = Math.round(decodedValues[i] * 255);
-    imageData.data[i * 4] = value;
-    imageData.data[i * 4 + 1] = value;
-    imageData.data[i * 4 + 2] = value;
-    imageData.data[i * 4 + 3] = 255;
-  }
-  decodedCtx.putImageData(imageData, 0, 0);
-
-  // Display reconstruction error
-  const errorElement = document.getElementById('error');
-  errorElement.innerText = `Reconstruction Error: ${error.toFixed(4)}`;
-  errorElement.style.display = 'none';
-}
-
-function resetCanvas() {
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const decodedCanvas = document.getElementById('decodedCanvas');
-  const decodedCtx = decodedCanvas.getContext('2d');
-  decodedCtx.clearRect(0, 0, decodedCanvas.width, decodedCanvas.height);
-
-  document.getElementById('error').style.display = 'none';
-}
-
-function clearInput() {
-  document.getElementById('inputData').value = '';
-}
-
-function toggleEncoded() {
-  const canvas = document.getElementById('canvas');
-  canvas.style.display = canvas.style.display === 'none' ? 'block' : 'none';
-}
-
-function toggleDecoded() {
-  const decodedCanvas = document.getElementById('decodedCanvas');
-  decodedCanvas.style.display = decodedCanvas.style.display === 'none' ? 'block' : 'none';
-}
-
-function toggleError() {
-  const errorElement = document.getElementById('error');
-  errorElement.style.display = errorElement.style.display === 'none' ? 'block' : 'none';
-}
-
-document.getElementById('epochs').addEventListener('input', function() {
-  document.getElementById('epochsValue').innerText = this.value;
-});
-</script>
+<script src="autoencoder.js"></script>
 </body>
 </html>
+
 
