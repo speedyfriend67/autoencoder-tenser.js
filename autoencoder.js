@@ -1,16 +1,45 @@
+const inputData = [];
 let model;
 let trainingInProgress = false;
 let lossValues = [];
 
+document.getElementById('visualizeButton').addEventListener('click', visualize);
+document.getElementById('resetButton').addEventListener('click', resetCanvas);
+document.getElementById('clearButton').addEventListener('click', clearInput);
+document.getElementById('epochs').addEventListener('input', function() {
+  document.getElementById('epochsValue').innerText = this.value;
+});
+
 async function visualize() {
-  const inputData = document.getElementById('inputData').value.split(',').map(Number);
+  const inputDataRaw = document.getElementById('inputData').value.trim();
+  if (!inputDataRaw) {
+    alert('Please enter input data.');
+    return;
+  }
+  
+  inputData.length = 0;
+  inputDataRaw.split(',').forEach(value => inputData.push(parseFloat(value)));
+
   const encodingUnits = parseInt(document.getElementById('encodingUnits').value, 10);
   const epochs = parseInt(document.getElementById('epochs').value, 10);
   const learningRate = parseFloat(document.getElementById('learningRate').value);
+  const optimizerName = document.getElementById('optimizer').value;
+  const lossMetric = document.getElementById('lossMetric').value;
 
-  // Prevent starting multiple training sessions simultaneously
+  if (isNaN(encodingUnits) || isNaN(epochs) || isNaN(learningRate)) {
+    alert('Please enter valid numeric values for encoding units, epochs, and learning rate.');
+    return;
+  }
+
+  const optimizer = optimizerName === 'adam' ? tf.train.adam(learningRate) : tf.train.sgd(learningRate);
+
   if (trainingInProgress) return;
   trainingInProgress = true;
+
+  // Clear previous values
+  lossValues = [];
+  clearInput();
+  resetCanvas();
 
   // Define the model architecture
   model = tf.sequential();
@@ -18,14 +47,13 @@ async function visualize() {
   model.add(tf.layers.dense({ units: inputData.length, activation: 'sigmoid' }));
 
   // Compile the model
-  const optimizer = tf.train.adam(learningRate);
-  model.compile({ optimizer, loss: 'meanSquaredError' });
+  model.compile({ optimizer, loss: lossMetric });
 
   // Train the model with random data (no real training data provided)
   const trainingData = tf.randomNormal([10, inputData.length]);
   const history = await model.fit(trainingData, trainingData, {
     epochs,
-    verbose: 0,
+    verbose: 1,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         lossValues.push(logs.loss);
@@ -41,18 +69,18 @@ async function visualize() {
   const encodedData = model.predict(tf.tensor2d([inputData]));
   const decodedData = model.predict(encodedData);
 
-  // Calculate reconstruction error
-  const error = tf.metrics.meanSquaredError(tf.tensor2d([inputData]), decodedData).dataSync()[0];
-
   // Display encoded data
   displayEncodedData(encodedData.dataSync());
 
   // Display decoded data
   displayDecodedData(decodedData.dataSync());
 
+  // Calculate reconstruction error
+  const error = tf.metrics.meanSquaredError(tf.tensor2d([inputData]), decodedData).dataSync()[0];
+
   // Display reconstruction error
   document.getElementById('error').innerText = `Reconstruction Error: ${error.toFixed(4)}`;
-  document.getElementById('error').style.display = 'none';
+  document.getElementById('error').style.display = 'block';
 }
 
 function resetCanvas() {
@@ -63,8 +91,6 @@ function resetCanvas() {
   const decodedCanvas = document.getElementById('decodedCanvas');
   const decodedCtx = decodedCanvas.getContext('2d');
   decodedCtx.clearRect(0, 0, decodedCanvas.width, decodedCanvas.height);
-
-  document.getElementById('error').style.display = 'none';
 }
 
 function clearInput() {
@@ -72,22 +98,32 @@ function clearInput() {
 }
 
 function updateLossChart() {
-  const lossCanvas = document.getElementById('lossChart');
-  const ctx = lossCanvas.getContext('2d');
-  const scaleFactor = 50;
-  ctx.clearRect(0, 0, lossCanvas.width, lossCanvas.height);
-  ctx.beginPath();
-  ctx.moveTo(0, lossCanvas.height - lossValues[0] * scaleFactor);
-  for (let i = 1; i < lossValues.length; i++) {
-    ctx.lineTo(i * 10, lossCanvas.height - lossValues[i] * scaleFactor);
-  }
-  ctx.strokeStyle = 'red';
-  ctx.stroke();
+  const ctx = document.getElementById('lossChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: Array.from(Array(lossValues.length).keys()),
+      datasets: [{
+        label: 'Loss',
+        data: lossValues,
+        borderColor: 'blue',
+        borderWidth: 1,
+        fill: false
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
 }
 
 function displayEncodedData(data) {
   const encodedContainer = document.getElementById('encodedContainer');
-  encodedContainer.innerHTML = '';
+  encodedContainer.innerHTML = '<p><strong>Encoded Data:</strong></p>';
   const ul = document.createElement('ul');
   data.forEach(value => {
     const li = document.createElement('li');
@@ -99,7 +135,7 @@ function displayEncodedData(data) {
 
 function displayDecodedData(data) {
   const decodedContainer = document.getElementById('decodedContainer');
-  decodedContainer.innerHTML = '';
+  decodedContainer.innerHTML = '<p><strong>Decoded Data:</strong></p>';
   const ul = document.createElement('ul');
   data.forEach(value => {
     const li = document.createElement('li');
@@ -109,20 +145,4 @@ function displayDecodedData(data) {
   decodedContainer.appendChild(ul);
 }
 
-document.getElementById('visualizeButton').addEventListener('click', visualize);
-document.getElementById('resetButton').addEventListener('click', resetCanvas);
-document.getElementById('clearButton').addEventListener('click', clearInput);
-document.getElementById('epochs').addEventListener('input', function() {
-  document.getElementById('epochsValue').innerText = this.value;
-});
-document.getElementById('trainPauseResumeButton').addEventListener('click', function() {
-  if (trainingInProgress) {
-    model.stopTraining = true;
-    this.innerText = 'Resume Training';
-  } else {
-    model.stopTraining = false;
-    visualize();
-    this.innerText = 'Pause Training';
-  }
-});
 
