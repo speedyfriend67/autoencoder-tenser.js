@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Autoencoder Example</title>
+  <!-- Load TensorFlow.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
+</head>
+<body>
+  <script>
+    // Define the model architecture
+    const model = tf.sequential();
+    model.add(tf.layers.dense({ inputShape: [10], units: 5, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 10, activation: 'sigmoid' }));
+
+    // Compile the model
+    model.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
+
+    // Define the training data (same format as before)
+    const trainingData = tf.tensor2d([
+      [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+      // Add more training data here...
+    ]);
+
+    // Train the model
+    model.fit(trainingData, trainingData, { epochs: 100 })
+      .then(() => {
+        // Test the trained model
+        const inputData = tf.tensor2d([[0, 1, 0, 1, 0, 1, 0, 1, 0, 1]]);
+        const encodedData = model.predict(inputData);
+        console.log('Encoded Data:', encodedData.dataSync());
+
+        // Decode the encoded data
+        const decodedData = model.predict(encodedData);
+        console.log('Decoded Data:', decodedData.dataSync());
+      });
+  </script>
+</body>
+</html>
