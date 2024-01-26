@@ -11,7 +11,7 @@
 <body>
 <div class="container">
   <h1>Autoencoder Visualizer</h1>
-  <input type="text" id="inputData" placeholder="Enter input data (comma-separated)">
+  <input type="text" id="inputData" placeholder="Enter 5 numbers (comma-separated)">
   <br>
   <button id="visualizeButton">Visualize</button>
   <button id="resetButton">Reset Input</button>
@@ -39,6 +39,8 @@
     <option value="binaryCrossentropy">Binary Crossentropy</option>
   </select>
   <br>
+  <canvas id="lineChart"></canvas>
+  <br>
   <div id="encodedContainer"></div>
   <div id="decodedContainer"></div>
   <p id="error" style="display: none;"></p>
@@ -47,5 +49,4 @@
 <script src="autoencoder.js"></script>
 </body>
 </html>
-
 
