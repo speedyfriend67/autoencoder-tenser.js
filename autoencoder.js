@@ -44,33 +44,15 @@ async function visualize() {
   // Calculate reconstruction error
   const error = tf.metrics.meanSquaredError(tf.tensor2d([inputData]), decodedData).dataSync()[0];
 
-  // Visualize encoded data
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const encodedValues = encodedData.dataSync();
-  ctx.fillStyle = 'blue';
-  ctx.fillRect(0, 0, encodedValues[0] * 100, encodedValues[1] * 100);
+  // Display encoded data
+  displayEncodedData(encodedData.dataSync());
 
-  // Visualize decoded data
-  const decodedCanvas = document.getElementById('decodedCanvas');
-  const decodedCtx = decodedCanvas.getContext('2d');
-  decodedCtx.clearRect(0, 0, decodedCanvas.width, decodedCanvas.height);
-  const decodedValues = decodedData.dataSync();
-  const imageData = decodedCtx.createImageData(decodedCanvas.width, decodedCanvas.height);
-  for (let i = 0; i < decodedValues.length; i++) {
-    const value = Math.round(decodedValues[i] * 255);
-    imageData.data[i * 4] = value;
-    imageData.data[i * 4 + 1] = value;
-    imageData.data[i * 4 + 2] = value;
-    imageData.data[i * 4 + 3] = 255;
-  }
-  decodedCtx.putImageData(imageData, 0, 0);
+  // Display decoded data
+  displayDecodedData(decodedData.dataSync());
 
   // Display reconstruction error
-  const errorElement = document.getElementById('error');
-  errorElement.innerText = `Reconstruction Error: ${error.toFixed(4)}`;
-  errorElement.style.display = 'none';
+  document.getElementById('error').innerText = `Reconstruction Error: ${error.toFixed(4)}`;
+  document.getElementById('error').style.display = 'none';
 }
 
 function resetCanvas() {
@@ -89,21 +71,6 @@ function clearInput() {
   document.getElementById('inputData').value = '';
 }
 
-function toggleEncoded() {
-  const canvas = document.getElementById('canvas');
-  canvas.style.display = canvas.style.display === 'none' ? 'block' : 'none';
-}
-
-function toggleDecoded() {
-  const decodedCanvas = document.getElementById('decodedCanvas');
-  decodedCanvas.style.display = decodedCanvas.style.display === 'none' ? 'block' : 'none';
-}
-
-function toggleError() {
-  const errorElement = document.getElementById('error');
-  errorElement.style.display = errorElement.style.display === 'none' ? 'block' : 'none';
-}
-
 function updateLossChart() {
   const lossCanvas = document.getElementById('lossChart');
   const ctx = lossCanvas.getContext('2d');
@@ -118,12 +85,33 @@ function updateLossChart() {
   ctx.stroke();
 }
 
+function displayEncodedData(data) {
+  const encodedContainer = document.getElementById('encodedContainer');
+  encodedContainer.innerHTML = '';
+  const ul = document.createElement('ul');
+  data.forEach(value => {
+    const li = document.createElement('li');
+    li.textContent = value.toFixed(4);
+    ul.appendChild(li);
+  });
+  encodedContainer.appendChild(ul);
+}
+
+function displayDecodedData(data) {
+  const decodedContainer = document.getElementById('decodedContainer');
+  decodedContainer.innerHTML = '';
+  const ul = document.createElement('ul');
+  data.forEach(value => {
+    const li = document.createElement('li');
+    li.textContent = value.toFixed(4);
+    ul.appendChild(li);
+  });
+  decodedContainer.appendChild(ul);
+}
+
 document.getElementById('visualizeButton').addEventListener('click', visualize);
 document.getElementById('resetButton').addEventListener('click', resetCanvas);
 document.getElementById('clearButton').addEventListener('click', clearInput);
-document.getElementById('toggleEncodedButton').addEventListener('click', toggleEncoded);
-document.getElementById('toggleDecodedButton').addEventListener('click', toggleDecoded);
-document.getElementById('toggleErrorButton').addEventListener('click', toggleError);
 document.getElementById('epochs').addEventListener('input', function() {
   document.getElementById('epochsValue').innerText = this.value;
 });
@@ -137,3 +125,4 @@ document.getElementById('trainPauseResumeButton').addEventListener('click', func
     this.innerText = 'Pause Training';
   }
 });
+
