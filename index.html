@@ -2,38 +2,89 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Autoencoder Example</title>
-  <!-- Load TensorFlow.js library -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .content {
+      max-width: 600px;
+      width: 100%;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin-bottom: 10px;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <div class="content">
+      <h1>Autoencoder Example</h1>
+      <textarea id="inputData" placeholder="Enter input data..."></textarea>
+      <button onclick="runAutoencoder()">Run Autoencoder</button>
+      <div id="output"></div>
+    </div>
+  </div>
+
+  <!-- Load TensorFlow.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
   <script>
-    // Define the model architecture
-    const model = tf.sequential();
-    model.add(tf.layers.dense({ inputShape: [10], units: 5, activation: 'relu' }));
-    model.add(tf.layers.dense({ units: 10, activation: 'sigmoid' }));
+    async function runAutoencoder() {
+      const inputData = document.getElementById('inputData').value.split(',').map(Number);
 
-    // Compile the model
-    model.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
+      // Define the model architecture
+      const model = tf.sequential();
+      model.add(tf.layers.dense({ inputShape: [inputData.length], units: 5, activation: 'relu' }));
+      model.add(tf.layers.dense({ units: inputData.length, activation: 'sigmoid' }));
 
-    // Define the training data (same format as before)
-    const trainingData = tf.tensor2d([
-      [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-      // Add more training data here...
-    ]);
+      // Compile the model
+      model.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
 
-    // Train the model
-    model.fit(trainingData, trainingData, { epochs: 100 })
-      .then(() => {
-        // Test the trained model
-        const inputData = tf.tensor2d([[0, 1, 0, 1, 0, 1, 0, 1, 0, 1]]);
-        const encodedData = model.predict(inputData);
-        console.log('Encoded Data:', encodedData.dataSync());
+      // Train the model with random data (no real training data provided)
+      const trainingData = tf.randomNormal([10, inputData.length]);
+      await model.fit(trainingData, trainingData, { epochs: 100, verbose: 0 });
 
-        // Decode the encoded data
-        const decodedData = model.predict(encodedData);
-        console.log('Decoded Data:', decodedData.dataSync());
-      });
+      // Encode and decode input data
+      const encodedData = model.predict(tf.tensor2d([inputData]));
+      const decodedData = model.predict(encodedData);
+
+      // Display encoded and decoded data
+      document.getElementById('output').innerHTML = `
+        <p><strong>Encoded Data:</strong> ${Array.from(encodedData.dataSync()).join(', ')}</p>
+        <p><strong>Decoded Data:</strong> ${Array.from(decodedData.dataSync()).join(', ')}</p>
+      `;
+    }
   </script>
 </body>
 </html>
