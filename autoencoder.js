@@ -1,15 +1,4 @@
-let inputData = [];
-let model;
-let trainingInProgress = false;
-let lossValues = [];
-let accuracyValues = [];
-
 document.getElementById('visualizeButton').addEventListener('click', visualize);
-document.getElementById('resetButton').addEventListener('click', clearInput);
-document.getElementById('clearButton').addEventListener('click', clearInput);
-document.getElementById('epochs').addEventListener('input', function() {
-  document.getElementById('epochsValue').innerText = this.value;
-});
 
 async function visualize() {
   const inputDataRaw = document.getElementById('inputData').value.trim();
@@ -18,7 +7,7 @@ async function visualize() {
     return;
   }
 
-  inputData = inputDataRaw.split(',').map(Number);
+  const inputData = inputDataRaw.split(',').map(Number);
   if (inputData.length !== 5 || inputData.some(isNaN)) {
     alert('Please enter 5 valid numbers separated by commas.');
     return;
@@ -29,24 +18,45 @@ async function visualize() {
   const learningRate = parseFloat(document.getElementById('learningRate').value);
   const optimizerName = document.getElementById('optimizer').value;
   const lossMetric = document.getElementById('lossMetric').value;
+  let lossFunction;
 
-  const optimizer = optimizerName === 'adam' ? tf.train.adam(learningRate) : tf.train.sgd(learningRate);
+  if (lossMetric === 'custom') {
+    const customLoss = document.getElementById('customLoss').value.trim();
+    if (!customLoss) {
+      alert('Please enter a custom loss function.');
+      return;
+    }
+    try {
+      eval(`lossFunction = ${customLoss}`);
+    } catch (error) {
+      alert('Invalid custom loss function.');
+      return;
+    }
+  }
 
-  if (trainingInProgress) return;
-  trainingInProgress = true;
+  const l1Regularization = document.getElementById('l1Regularization').checked;
+  const l2Regularization = document.getElementById('l2Regularization').checked;
+  const dropoutRate = parseFloat(document.getElementById('dropoutRate').value);
 
-  // Clear previous values
-  lossValues = [];
-  accuracyValues = [];
-  clearInput();
-
-  // Define the model architecture
-  model = tf.sequential();
+  const model = tf.sequential();
   model.add(tf.layers.dense({ inputShape: [inputData.length], units: encodingUnits, activation: 'relu' }));
+
+  if (l1Regularization) {
+    model.add(tf.layers.dropout({ rate: dropoutRate }));
+  }
+  if (l2Regularization) {
+    model.add(tf.layers.dropout({ rate: dropoutRate }));
+  }
+
   model.add(tf.layers.dense({ units: inputData.length, activation: 'sigmoid' }));
 
-  // Compile the model
-  model.compile({ optimizer, loss: lossMetric, metrics: ['accuracy'] });
+  const optimizer = optimizerName === 'adam' ? tf.train.adam(learningRate) : tf.train.sgd(learningRate);
+  const loss = lossMetric === 'custom' ? lossFunction : lossMetric;
+  model.compile({ optimizer, loss });
+
+  // Train the model...
+}
+
 
   // Train the model with random data (no real training data provided)
   const trainingData = tf.randomNormal([10, inputData.length]);
