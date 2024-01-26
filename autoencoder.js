@@ -2,6 +2,7 @@ let inputData = [];
 let model;
 let trainingInProgress = false;
 let lossValues = [];
+let accuracyValues = [];
 
 document.getElementById('visualizeButton').addEventListener('click', visualize);
 document.getElementById('resetButton').addEventListener('click', clearInput);
@@ -36,6 +37,7 @@ async function visualize() {
 
   // Clear previous values
   lossValues = [];
+  accuracyValues = [];
   clearInput();
 
   // Define the model architecture
@@ -44,7 +46,7 @@ async function visualize() {
   model.add(tf.layers.dense({ units: inputData.length, activation: 'sigmoid' }));
 
   // Compile the model
-  model.compile({ optimizer, loss: lossMetric });
+  model.compile({ optimizer, loss: lossMetric, metrics: ['accuracy'] });
 
   // Train the model with random data (no real training data provided)
   const trainingData = tf.randomNormal([10, inputData.length]);
@@ -54,7 +56,9 @@ async function visualize() {
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         lossValues.push(logs.loss);
+        accuracyValues.push(logs.acc);
         updateLossChart();
+        updateTrainingMetrics(epoch + 1, logs.loss, logs.acc);
         await tf.nextFrame();
       }
     }
@@ -109,6 +113,11 @@ function updateLossChart() {
       }
     }
   });
+}
+
+function updateTrainingMetrics(epoch, loss, accuracy) {
+  const trainingMetrics = document.getElementById('trainingMetrics');
+  trainingMetrics.innerHTML = `<p>Epoch: ${epoch}, Loss: ${loss.toFixed(4)}, Accuracy: ${(accuracy * 100).toFixed(2)}%</p>`;
 }
 
 function displayEncodedData(data) {
