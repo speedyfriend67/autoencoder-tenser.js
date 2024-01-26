@@ -4,7 +4,7 @@ let trainingInProgress = false;
 let lossValues = [];
 
 document.getElementById('visualizeButton').addEventListener('click', visualize);
-document.getElementById('resetButton').addEventListener('click', resetCanvas);
+document.getElementById('resetButton').addEventListener('click', clearInput);
 document.getElementById('clearButton').addEventListener('click', clearInput);
 document.getElementById('epochs').addEventListener('input', function() {
   document.getElementById('epochsValue').innerText = this.value;
@@ -39,7 +39,6 @@ async function visualize() {
   // Clear previous values
   lossValues = [];
   clearInput();
-  resetCanvas();
 
   // Define the model architecture
   model = tf.sequential();
@@ -81,16 +80,6 @@ async function visualize() {
   // Display reconstruction error
   document.getElementById('error').innerText = `Reconstruction Error: ${error.toFixed(4)}`;
   document.getElementById('error').style.display = 'block';
-}
-
-function resetCanvas() {
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const decodedCanvas = document.getElementById('decodedCanvas');
-  const decodedCtx = decodedCanvas.getContext('2d');
-  decodedCtx.clearRect(0, 0, decodedCanvas.width, decodedCanvas.height);
 }
 
 function clearInput() {
