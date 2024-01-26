@@ -4,40 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Autoencoder Visualizer</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f4f4f4;
-  }
-  .container {
-    text-align: center;
-  }
-  input, button {
-    margin: 5px;
-    padding: 8px;
-  }
-  canvas {
-    border: 1px solid #ccc;
-    background-color: #fff;
-  }
-  .toggle-button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  .toggle-button:hover {
-    background-color: #0056b3;
-  }
-</style>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0"></script>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
@@ -58,22 +27,25 @@
   <label for="learningRate">Learning Rate:</label>
   <input type="number" id="learningRate" min="0.0001" step="0.0001" value="0.001">
   <br>
-  <button class="toggle-button" id="toggleEncodedButton">Toggle Encoded Data</button>
-  <button class="toggle-button" id="toggleDecodedButton">Toggle Decoded Data</button>
-  <button class="toggle-button" id="toggleErrorButton">Toggle Reconstruction Error</button>
-  <button class="toggle-button" id="trainPauseResumeButton">Pause Training</button>
+  <label for="optimizer">Optimizer:</label>
+  <select id="optimizer">
+    <option value="adam">Adam</option>
+    <option value="sgd">SGD</option>
+  </select>
+  <br>
+  <label for="lossMetric">Loss Metric:</label>
+  <select id="lossMetric">
+    <option value="meanSquaredError">Mean Squared Error</option>
+    <option value="binaryCrossentropy">Binary Crossentropy</option>
+  </select>
   <br>
   <canvas id="canvas" width="200" height="200"></canvas>
   <br>
   <canvas id="decodedCanvas" width="200" height="200"></canvas>
   <p id="error" style="display: none;"></p>
-  <canvas id="lossChart" width="400" height="200"></canvas>
+  <canvas id="lossChart"></canvas>
 </div>
-
-<!-- Load TensorFlow.js library -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
 <script src="autoencoder.js"></script>
 </body>
 </html>
-
 
