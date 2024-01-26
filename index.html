@@ -14,7 +14,7 @@
   <input type="text" id="inputData" placeholder="Enter input data (comma-separated)">
   <br>
   <button id="visualizeButton">Visualize</button>
-  <button id="resetButton">Reset Canvas</button>
+  <button id="resetButton">Reset Input</button>
   <button id="clearButton">Clear Input</button>
   <br>
   <label for="encodingUnits">Encoding Units:</label>
@@ -39,13 +39,13 @@
     <option value="binaryCrossentropy">Binary Crossentropy</option>
   </select>
   <br>
-  <canvas id="canvas" width="200" height="200"></canvas>
-  <br>
-  <canvas id="decodedCanvas" width="200" height="200"></canvas>
+  <div id="encodedContainer"></div>
+  <div id="decodedContainer"></div>
   <p id="error" style="display: none;"></p>
   <canvas id="lossChart"></canvas>
 </div>
 <script src="autoencoder.js"></script>
 </body>
 </html>
+
 
