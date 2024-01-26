@@ -1,4 +1,4 @@
-const inputData = [];
+let inputData = [];
 let model;
 let trainingInProgress = false;
 let lossValues = [];
@@ -13,23 +13,21 @@ document.getElementById('epochs').addEventListener('input', function() {
 async function visualize() {
   const inputDataRaw = document.getElementById('inputData').value.trim();
   if (!inputDataRaw) {
-    alert('Please enter input data.');
+    alert('Please enter 5 numbers separated by commas.');
     return;
   }
-  
-  inputData.length = 0;
-  inputDataRaw.split(',').forEach(value => inputData.push(parseFloat(value)));
+
+  inputData = inputDataRaw.split(',').map(Number);
+  if (inputData.length !== 5 || inputData.some(isNaN)) {
+    alert('Please enter 5 valid numbers separated by commas.');
+    return;
+  }
 
   const encodingUnits = parseInt(document.getElementById('encodingUnits').value, 10);
   const epochs = parseInt(document.getElementById('epochs').value, 10);
   const learningRate = parseFloat(document.getElementById('learningRate').value);
   const optimizerName = document.getElementById('optimizer').value;
   const lossMetric = document.getElementById('lossMetric').value;
-
-  if (isNaN(encodingUnits) || isNaN(epochs) || isNaN(learningRate)) {
-    alert('Please enter valid numeric values for encoding units, epochs, and learning rate.');
-    return;
-  }
 
   const optimizer = optimizerName === 'adam' ? tf.train.adam(learningRate) : tf.train.sgd(learningRate);
 
@@ -80,6 +78,9 @@ async function visualize() {
   // Display reconstruction error
   document.getElementById('error').innerText = `Reconstruction Error: ${error.toFixed(4)}`;
   document.getElementById('error').style.display = 'block';
+
+  // Visualize input data as a line chart
+  visualizeLineChart(inputData);
 }
 
 function clearInput() {
@@ -134,4 +135,38 @@ function displayDecodedData(data) {
   decodedContainer.appendChild(ul);
 }
 
+function visualizeLineChart(data) {
+  const ctx = document.getElementById('lineChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['1', '2', '3', '4', '5'],
+      datasets: [{
+        label: 'Input Data',
+        data: data,
+        borderColor: 'green',
+        borderWidth: 2,
+        fill: false
+      }]
+    },
+    options: {
+      scales: {
+        x: {
+          display: true,
+          title: {
+            display: true,
+            text: 'Number Index'
+          }
+        },
+        y: {
+          display: true,
+          title: {
+            display: true,
+            text: 'Number Value'
+          }
+        }
+      }
+    }
+  });
+}
 
